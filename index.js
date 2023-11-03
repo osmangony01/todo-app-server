@@ -70,6 +70,7 @@ async function run() {
             }
         })
 
+        // fetch all todo form db based on email
         app.get('/todo', async(req, res) => {
             
             const { email } = req.query;
@@ -85,6 +86,22 @@ async function run() {
             }
             catch (error) {
                 res.status(500).send([])
+            }
+           
+        })
+
+
+        // delete task according to id
+        app.delete("/delete-task/:id", async (req, res) => {
+            const id = req.params.id;
+            console.log(id)
+            const query = { _id: new ObjectId(id) };
+            try {
+                const result = await todoCollection.deleteOne(query);
+                res.status(200).send(result);
+            }
+            catch (error) {
+                res.status(500).send([]);
             }
            
         })
