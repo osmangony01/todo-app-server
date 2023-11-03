@@ -5,7 +5,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5005;
 
 app.use(cors());
 app.use(express.json());
@@ -13,10 +13,10 @@ app.use(express.urlencoded({ extended: true }));
 
 
 app.get("/", (req, res) => {
-    res.send("task server is running...")
+    res.send("server is running...")
 })
 
-const uri = process.env.DB_URL;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.l6kpz6n.mongodb.net/taskManagement`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -33,8 +33,61 @@ async function run() {
         client.connect();
         // Send a ping to confirm a successful connection
 
-        const userCollection = client.db('taskMg').collection('users');
-        
+        const todoUserCollection = client.db('taskManagement').collection('todoUser');
+        const todoCollection = client.db('taskManagement').collection('todos');
+
+        // add user in database
+        app.post("/users", async (req, res) => {
+            const user = req.body;
+            //console.log(user);
+            const query = { email: user.email };
+            const existingUser = await todoUserCollection.findOne(query);
+                    //console.log(existingUser);
+            if (existingUser) {
+                return res.send({ message: 'user already exists' });
+            }
+            const result = await todoUserCollection.insertOne(user);
+            res.send(result);
+        })
+
+        // create task route
+        app.post("/create-task", async (req, res) => {
+            const taskData = req.body;
+            console.log(taskData)
+
+            try {
+                const result = await todoCollection.insertOne(taskData);
+                res.status(201).json({
+                    ok: true,
+                    message: "Task is created"
+                })
+            }
+            catch (error) {
+                res.status(500).json({
+                    ok: false,
+                    message: "Failed to create Task!!"
+                })
+            }
+        })
+
+        app.get('/todo', async(req, res) => {
+            
+            const { email } = req.query;
+            console.log(email);
+
+            if (!email) {
+                res.send([]);
+            }
+            try {
+                const query = { email: email };
+                const result = await todoCollection.find(query).toArray();
+                res.status(200).send(result);
+            }
+            catch (error) {
+                res.status(500).send([])
+            }
+           
+        })
 
 
 
@@ -53,5 +106,5 @@ run().catch(console.dir);
 
 
 app.listen(PORT, () => {
-    console.log(`Summar camp is running on PORT : ${PORT}`)
+    console.log(`todo server is running on PORT : ${PORT}`)
 })
