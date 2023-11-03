@@ -42,7 +42,7 @@ async function run() {
             //console.log(user);
             const query = { email: user.email };
             const existingUser = await todoUserCollection.findOne(query);
-                    //console.log(existingUser);
+            //console.log(existingUser);
             if (existingUser) {
                 return res.send({ message: 'user already exists' });
             }
@@ -63,16 +63,16 @@ async function run() {
                 })
             }
             catch (error) {
-                res.status(500).json({
-                    ok: false,
-                    message: "Failed to create Task!!"
+                res.status(201).json({
+                    ok: true,
+                    message: "Task is created"
                 })
             }
         })
 
         // fetch all todo form db based on email
-        app.get('/todo', async(req, res) => {
-            
+        app.get('/todo', async (req, res) => {
+
             const { email } = req.query;
             console.log(email);
 
@@ -87,7 +87,7 @@ async function run() {
             catch (error) {
                 res.status(500).send([])
             }
-           
+
         })
 
 
@@ -103,11 +103,40 @@ async function run() {
             catch (error) {
                 res.status(500).send([]);
             }
-           
         })
 
 
+        // update task 
+        app.patch("/update-task", async (req, res) => {
+           
+            const { id, taskTitle, dueDate, priority, description } = req.body;
+            //console.log(req.body);
+            console.log(id)
 
+            const filter = { _id: new ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    taskTitle,
+                    dueDate,
+                    priority,
+                    description,
+                }
+            }
+            try {
+                const result = await todoCollection.updateOne(filter, updateDoc);
+                res.status(201).json({
+                    ok: true,
+                    message: "Task is updated"
+                })
+            }
+            catch (error) {
+                res.status(500).json({
+                    ok: false,
+                    message: "Failed to update Task!!"
+                })
+            }
+            
+        })
 
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
