@@ -53,7 +53,7 @@ async function run() {
         // create task route
         app.post("/create-task", async (req, res) => {
             const taskData = req.body;
-            console.log(taskData)
+            //console.log(taskData)
 
             try {
                 const result = await todoCollection.insertOne(taskData);
@@ -74,7 +74,7 @@ async function run() {
         app.get('/todo', async (req, res) => {
 
             const { email } = req.query;
-            console.log(email);
+            // console.log(email);
 
             if (!email) {
                 res.send([]);
@@ -87,14 +87,13 @@ async function run() {
             catch (error) {
                 res.status(500).send([])
             }
-
         })
 
 
         // delete task according to id
         app.delete("/delete-task/:id", async (req, res) => {
             const id = req.params.id;
-            console.log(id)
+            //console.log(id)
             const query = { _id: new ObjectId(id) };
             try {
                 const result = await todoCollection.deleteOne(query);
@@ -108,10 +107,9 @@ async function run() {
 
         // update task 
         app.patch("/update-task", async (req, res) => {
-           
+
             const { id, taskTitle, dueDate, priority, description } = req.body;
             //console.log(req.body);
-            console.log(id)
 
             const filter = { _id: new ObjectId(id) };
             const updateDoc = {
@@ -135,8 +133,14 @@ async function run() {
                     message: "Failed to update Task!!"
                 })
             }
-            
-        })
+
+        });
+
+        //testing
+        app.get('/todos', async (req, res) => {
+            const result = await todoCollection.find().toArray();
+            res.status(200).send(result);
+        });
 
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
